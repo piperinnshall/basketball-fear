@@ -1,0 +1,7 @@
+use base.Main as Main;
+use base.Lists as List;
+use base.Num as Num;
+use base.Void as Void;
+use base.Str as Str;
+
+Hello: Main { sys -> sys.out.println(`Hello World!`) }
