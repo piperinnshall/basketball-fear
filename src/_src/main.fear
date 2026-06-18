@@ -1,0 +1,59 @@
+Foo: base.Main {sys -> Block#
+  .let model={ Slots#[mut Model] }
+  .let canvas={ Slots#[Pane] }
+  .let gui= { Guis#(model, canvas) }
+  .do { model.fill(Models#gui) }
+  .do { sys.gui.run gui }
+  .done
+  }
+
+Guis: { #(model: mut Slot[mut Model], canvas: mut Slot[mut Pane]): mut Gui -> Block#
+  .let lightGrey = { Color#(Red#(83.byte),Green#(81.byte),Blue#(81.byte),Alpha.opaque) }
+  .return { mut Gui: Consumer[mut Frame] {::
+    .title "Volleyball"
+    .undecorated(Alpha.opaque)
+    .fps 60
+    .modelFps(60, {::})
+    .contentB {::
+      .width 500
+      .height 500
+      .background lightGrey
+      .center{:: .style(Center#(model!)) .save canvas }
+      };
+    mut .setCanvas(p: Painter): Void -> Block#(canvas!.paint(p), Void);
+    }}}
+
+Center: { #(model: mut Model): mut Scope[Pane] -> {::
+    .background(Color.rubberDuck) 
+    .paint Menu
+  }}
+
+Menu: Painter {g -> Block#
+  .let width = { g.panelWidth.get }
+  .let height = { g.panelHeight.get }
+  .let rectW = { (width * 4).div 5 }
+  .let rectH = { (height * 3).div 5 }
+  .let posX = { (width - rectW).div 2 }
+  .let posY = { (height - rectH).div 2 }
+  .return {g
+    .position(X#posX, Y#posY)
+    .rect(
+      Width#rectW,
+      Height#rectH
+    )
+  }
+}
+
+Game: Painter {g -> Block#
+  .let width = { g.panelWidth.get }
+  .let height = { g.panelHeight.get }
+  .return {g
+    .position(X#0, Y#0)
+    .oval(Width#width, Height#height)
+  }}
+
+Models: { #(gui: mut Gui): mut Model -> Block#
+  .var playing = { False }
+  .return { mut Model: { 'self
+    mut .play: Void -> Block#(playing.set(True), gui.setCanvas(Game)); //gui.setCanvas();
+  }}}
