@@ -18,6 +18,7 @@ use base.Consumer as Consumer;
 use base.Opt as Opt;
 use base.Opts as Opts;
 use base.Vars as Vars;
+use base.Var as Var;
 use base.Frame as Frame;
 use base.Debug as Debug;
 use base.Color as Color;
@@ -37,11 +38,12 @@ use base.Border as Border;
 use base.Scope as Scope;
 use base.Painter as Painter;
 
-/* Presentation1: base.Main { sys -> Block# */
-/*   .let model = { Slots#[mut Model] } */
-/*   .let size = { 700 } */
-/*   .let myGui = { Guis#(model, size) } */
-/*   .do { model.fill(Models#myGui) } */
-/*   .do { sys.gui.run myGui } */
-/*   .done */
-/*   } */
+Presentation2: base.Main {sys -> Block#
+  .let model = { Slots#[mut Model] }
+  .let canvas = { Slots#[Pane] }
+  .let gui = { Guis#(model, canvas) }
+  .do { model.fill(Models#gui) }
+  .do { sys.gui.run gui }
+  .done
+  }
+

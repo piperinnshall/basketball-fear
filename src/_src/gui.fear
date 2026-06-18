@@ -1,12 +1,3 @@
-Foo: base.Main {sys -> Block#
-  .let model = { Slots#[mut Model] }
-  .let canvas = { Slots#[Pane] }
-  .let gui = { Guis#(model, canvas) }
-  .do { model.fill(Models#gui) }
-  .do { sys.gui.run gui }
-  .done
-  }
-
 Guis: { #(model: mut Slot[mut Model], canvas: mut Slot[mut Pane]): mut Gui -> Block#
   .let lightGrey = { Color#(Red#(83.byte),Green#(81.byte),Blue#(81.byte),Alpha.opaque) }
   .let alpha = { Alpha.opaque }
@@ -21,7 +12,7 @@ Guis: { #(model: mut Slot[mut Model], canvas: mut Slot[mut Pane]): mut Gui -> Bl
         .pressed {::.matchOnly(Key#`D`) .doOnly { e -> model!.player.right True } }
         .released {::.matchOnly(Key#`D`) .doOnly { e -> model!.player.right False } }
       }
-    .modelFps(60, {::})
+    .modelFps(60, {:: .action { model!.tick } })
     .content {::
       .background lightGrey
       .style(Center#(model!)) 
@@ -45,39 +36,11 @@ Menu: Painter {g -> Block#
     .rect(bounds.width, bounds.height)
     }}
 
-/* Game: Painter {g -> Block# */
-/*   .let bounds = { PlayerBounds#(0, 0, g.panelWidth, g.panelHeight) } */
-/*   .return {g */
-/*     .position(bounds.x, bounds.y) */
-/*     .rect(bounds.width, bounds.height) */
-/*     }} */
-
-Game: { #(model: mut Model): Painter -> {g -> Block#
-  .let bounds = { PlayerBounds#(0, 0, g.panelWidth, g.panelHeight) }
+Game: { #(px: Nat, py: Nat): Painter -> {g -> Block#
+  .let bounds = { PlayerBounds#(px, py, g.panelWidth, g.panelHeight) }
   .return {g
     .position(bounds.x, bounds.y)
     .rect(bounds.width, bounds.height)
   }}}
 
-Players: { #(x: Nat, y: Nat): mut Player -> Block#
-  .var px = { x } .var py = { y }
-  .var left = { False } .var right = { False }
-  .return { mut Player: { 'self
-    read .x: Nat -> px.get;
-    read .y: Nat -> py.get;
-    mut .left(b: Bool): Void -> left.set b;
-    mut .right(b: Bool): Void -> right.set b;
-    mut .tick: Void -> Block#
-      .if { left.get }.do { px.set(px.get - 8) }
-      .if { right.get }.do { py.set(py.get - 8) }
-      .done;
-  }}}
 
-Models: { #(gui: mut Gui): mut Model -> Block#
-  .var playing = { False }
-  .let player = { Players#(0, 0) }
-  .return { mut Model: { 'self
-    mut .player: mut Player -> player;
-    mut .play: Void -> Block#(playing.set(True), gui.setCanvas(Game#self));
-    mut .tick: Void -> Block#.if { playing.get }.do { player.tick }.done;
-  }}}
