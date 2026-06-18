@@ -1,0 +1,32 @@
+Bounds: {
+  .x: X; .y: Y; .width: Width; .height: Height;
+  .inBounds(x: X, y: Y): Bool ->
+    x.get >= (this.x.get) && { x.get <= (this.x.get + (this.width.get)) } &&
+    { y.get >= (this.y.get) && { y.get <= (this.y.get + (this.height.get)) } }
+}
+
+MenuBounds: { #(width: Width, height: Height): Bounds -> Block#
+  .let w = { (width.get * 2).div 5 } .let h = { height.get.div 5 }
+  .return {{ 
+    .x -> X#((width.get - w).div 2); .y -> Y#((height.get - h).div 2); 
+    .width -> Width#w; .height -> Height#h;
+    }}}
+
+PlayerBounds: { #(x: Nat, y: Nat, width: Width, height: Height): Bounds -> Block#
+  .let w = { (width.get).div 10 } .let h = { (height.get*2).div 8 }
+  .return {{ 
+    .x -> X#x; .y -> Y#y;
+    .width -> Width#w; .height -> Height#h;
+    }}}
+
+/* Players: { #(width: Width, height: Height): mut Player -> Block# */
+/*   .var left = { False } */
+/*   .var right = { False } */
+/*   .var x = { 0 } .var y = { 0 } */
+/*   .let w = { width.get.div 8 } .let h = { (height.get * 2).div 8 } */
+/*   .return { mut Player: Bounds { */
+/*     .x -> X#(x.get); .y -> Y#(y.get); */
+/*     .width -> Width#w; .height -> Height#h; */
+/*     mut .left(b: Bool): Void -> left.set(b); */
+/*     mut .right(b: Bool): Void -> right.set(b); */
+/*     }}} */

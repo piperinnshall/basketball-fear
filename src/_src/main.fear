@@ -1,7 +1,7 @@
 Foo: base.Main {sys -> Block#
-  .let model={ Slots#[mut Model] }
-  .let canvas={ Slots#[Pane] }
-  .let gui= { Guis#(model, canvas) }
+  .let model = { Slots#[mut Model] }
+  .let canvas = { Slots#[Pane] }
+  .let gui = { Guis#(model, canvas) }
   .do { model.fill(Models#gui) }
   .do { sys.gui.run gui }
   .done
@@ -9,51 +9,75 @@ Foo: base.Main {sys -> Block#
 
 Guis: { #(model: mut Slot[mut Model], canvas: mut Slot[mut Pane]): mut Gui -> Block#
   .let lightGrey = { Color#(Red#(83.byte),Green#(81.byte),Blue#(81.byte),Alpha.opaque) }
+  .let alpha = { Alpha.opaque }
   .return { mut Gui: Consumer[mut Frame] {::
     .title "Volleyball"
-    .undecorated(Alpha.opaque)
+    .maximized
+    .undecorated alpha
     .fps 60
+    .onKey {::
+        .pressed {::.matchOnly(Key#`A`) .doOnly { e -> model!.player.left True } }
+        .released {::.matchOnly(Key#`A`) .doOnly { e -> model!.player.left False } }
+        .pressed {::.matchOnly(Key#`D`) .doOnly { e -> model!.player.right True } }
+        .released {::.matchOnly(Key#`D`) .doOnly { e -> model!.player.right False } }
+      }
     .modelFps(60, {::})
-    .contentB {::
-      .width 500
-      .height 500
+    .content {::
       .background lightGrey
-      .center{:: .style(Center#(model!)) .save canvas }
+      .style(Center#(model!)) 
+      .save canvas 
       };
     mut .setCanvas(p: Painter): Void -> Block#(canvas!.paint(p), Void);
     }}}
 
 Center: { #(model: mut Model): mut Scope[Pane] -> {::
-    .background(Color.rubberDuck) 
+    .mouse {::.clicked {e -> Block# 
+      .let bounds = { MenuBounds#(e.panelWidth, e.panelHeight) }
+      .if { bounds.inBounds(e.mouseX, e.mouseY) }.do { model.play }.done
+      }}
     .paint Menu
   }}
 
 Menu: Painter {g -> Block#
-  .let width = { g.panelWidth.get }
-  .let height = { g.panelHeight.get }
-  .let rectW = { (width * 4).div 5 }
-  .let rectH = { (height * 3).div 5 }
-  .let posX = { (width - rectW).div 2 }
-  .let posY = { (height - rectH).div 2 }
+  .let bounds = { MenuBounds#(g.panelWidth, g.panelHeight) }
   .return {g
-    .position(X#posX, Y#posY)
-    .rect(
-      Width#rectW,
-      Height#rectH
-    )
-  }
-}
+    .position(bounds.x, bounds.y)
+    .rect(bounds.width, bounds.height)
+    }}
 
-Game: Painter {g -> Block#
-  .let width = { g.panelWidth.get }
-  .let height = { g.panelHeight.get }
+/* Game: Painter {g -> Block# */
+/*   .let bounds = { PlayerBounds#(0, 0, g.panelWidth, g.panelHeight) } */
+/*   .return {g */
+/*     .position(bounds.x, bounds.y) */
+/*     .rect(bounds.width, bounds.height) */
+/*     }} */
+
+Game: { #(model: mut Model): Painter -> {g -> Block#
+  .let bounds = { PlayerBounds#(0, 0, g.panelWidth, g.panelHeight) }
   .return {g
-    .position(X#0, Y#0)
-    .oval(Width#width, Height#height)
-  }}
+    .position(bounds.x, bounds.y)
+    .rect(bounds.width, bounds.height)
+  }}}
+
+Players: { #(x: Nat, y: Nat): mut Player -> Block#
+  .var px = { x } .var py = { y }
+  .var left = { False } .var right = { False }
+  .return { mut Player: { 'self
+    read .x: Nat -> px.get;
+    read .y: Nat -> py.get;
+    mut .left(b: Bool): Void -> left.set b;
+    mut .right(b: Bool): Void -> right.set b;
+    mut .tick: Void -> Block#
+      .if { left.get }.do { px.set(px.get - 8) }
+      .if { right.get }.do { py.set(py.get - 8) }
+      .done;
+  }}}
 
 Models: { #(gui: mut Gui): mut Model -> Block#
   .var playing = { False }
+  .let player = { Players#(0, 0) }
   .return { mut Model: { 'self
-    mut .play: Void -> Block#(playing.set(True), gui.setCanvas(Game)); //gui.setCanvas();
+    mut .player: mut Player -> player;
+    mut .play: Void -> Block#(playing.set(True), gui.setCanvas(Game#self));
+    mut .tick: Void -> Block#.if { playing.get }.do { player.tick }.done;
   }}}
