@@ -39,10 +39,12 @@ use base.Scope as Scope;
 use base.Painter as Painter;
 
 Presentation2: base.Main {sys -> Block#
+  .let height = { 900 }
+  .let width = { (height * 4).div 3 }
   .let model = { Slots#[mut Model] }
   .let canvas = { Slots#[Pane] }
-  .let gui = { Guis#(model, canvas) }
-  .do { model.fill(Models#gui) }
+  .let gui = { Guis#(model, canvas, width, height) }
+  .do { model.fill(Models#(gui, width, height)) }
   .do { sys.gui.run gui }
   .done
   }

@@ -1,19 +1,24 @@
-Guis: { #(model: mut Slot[mut Model], canvas: mut Slot[mut Pane]): mut Gui -> Block#
+Guis: { #(model: mut Slot[mut Model], canvas: mut Slot[mut Pane], width: Nat,  height: Nat): mut Gui -> Block#
   .let lightGrey = { Color#(Red#(83.byte),Green#(81.byte),Blue#(81.byte),Alpha.opaque) }
   .let alpha = { Alpha.opaque }
   .return { mut Gui: Consumer[mut Frame] {::
     .title "Volleyball"
-    .maximized
     .undecorated alpha
-    .fps 60
+    .fps 144
     .onKey {::
-        .pressed {::.matchOnly(Key#`A`) .doOnly { e -> model!.player.left True } }
-        .released {::.matchOnly(Key#`A`) .doOnly { e -> model!.player.left False } }
-        .pressed {::.matchOnly(Key#`D`) .doOnly { e -> model!.player.right True } }
-        .released {::.matchOnly(Key#`D`) .doOnly { e -> model!.player.right False } }
+        .pressed {::.matchOnly(Key#`A`) .doOnly { e -> model!.player1.left True } }
+        .released {::.matchOnly(Key#`A`) .doOnly { e -> model!.player1.left False } }
+        .pressed {::.matchOnly(Key#`D`) .doOnly { e -> model!.player1.right True } }
+        .released {::.matchOnly(Key#`D`) .doOnly { e -> model!.player1.right False } }
+        .pressed {::.matchOnly(Key#`J`) .doOnly { e -> model!.player2.left True } }
+        .released {::.matchOnly(Key#`J`) .doOnly { e -> model!.player2.left False } }
+        .pressed {::.matchOnly(Key#`L`) .doOnly { e -> model!.player2.right True } }
+        .released {::.matchOnly(Key#`L`) .doOnly { e -> model!.player2.right False } }
       }
     .modelFps(60, {:: .action { model!.tick } })
     .content {::
+      .width width
+      .height height
       .background lightGrey
       .style(Center#(model!)) 
       .save canvas 
@@ -36,11 +41,14 @@ Menu: Painter {g -> Block#
     .rect(bounds.width, bounds.height)
     }}
 
-Game: { #(px: Nat, py: Nat): Painter -> {g -> Block#
-  .let bounds = { PlayerBounds#(px, py, g.panelWidth, g.panelHeight) }
+Game: { #(p1x: Nat, p1y: Nat, p2x: Nat, p2y: Nat): Painter -> {g -> Block#
+  .let player1Bounds = { PlayerBounds#(p1x, p1y, g.panelWidth, g.panelHeight) }
+  .let player2Bounds = { PlayerBounds#(p2x, p2y, g.panelWidth, g.panelHeight) }
   .return {g
-    .position(bounds.x, bounds.y)
-    .rect(bounds.width, bounds.height)
+    .position(player1Bounds.x, player1Bounds.y)
+    .rect(player1Bounds.width, player1Bounds.height)
+    .position(player2Bounds.x, player2Bounds.y)
+    .rect(player2Bounds.width, player2Bounds.height)
   }}}
 
 

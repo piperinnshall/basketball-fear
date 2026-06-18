@@ -1,25 +1,39 @@
-Players: { #(x: Nat, y: Nat): mut Player -> Block#
-  .var px = { x } .var py = { y }
-  .var left = { False } .var right = { False }
+Players: { #(startX: Nat, startY: Nat, width: Nat, height: Nat, min: Nat, max: Nat): mut Player -> Block#
+  .var[Num] px = { startX.num }
+  .var[Num] py = { startY.num }
+  .var left = { False }
+  .var right = { False }
   .return { mut Player: { 'self
-    read .x: Nat -> px.get;
-    read .y: Nat -> py.get;
+    read .x: Nat -> px.get.nat;
+    read .y: Nat -> py.get.nat;
     mut .left(b: Bool): Void -> left.set b;
     mut .right(b: Bool): Void -> right.set b;
     mut .tick: Void -> Block#
-      .if { left.get }.do { px.set(px.get - 8) }
-      .if { right.get }.do { px.set(px.get + 8) }
+      .let bounds = { PlayerBounds#(self.x, self.y, Width#width, Height#height) }
+      .let bw = { bounds.width.get.num }
+      .let speed = { 8.num }
+      .if { left.get }.do { px.set((px.get - speed).clamp(min.num, max.num - bw)) }
+      .if { right.get }.do { px.set((px.get + speed).clamp(min.num, max.num - bw)) }
       .done;
     }}}
 
-Models: { #(gui: mut Gui): mut Model -> Block#
+Models: { #(gui: mut Gui, width: Nat, height: Nat): mut Model -> Block#
   .var playing = { False }
-  .let player = { Players#(0, 0) }
+
+  .let mid = { width.div 2 }
+  .let startX = { width.div 8 }
+  .let startY = { (height * 7) .div 10 } 
+  .let bounds = { PlayerBounds#(startX, startY, Width#width, Height#height) }
+  .let bw = { bounds.width.get }
+  .let p1 = { Players#(startX, startY, width, height, 0, mid) }
+  .let p2 = { Players#(width - startX - bw, startY, width, height, mid, width) }
+
   .return { mut Model: { 'self
-    mut .player: mut Player -> player;
+    mut .player1: mut Player -> p1;
+    mut .player2: mut Player -> p2;
     mut .play: Void -> playing.set True;
     mut .tick: Void -> Block#
       .if { playing.get } 
-      .do { Block#(player.tick, gui.setCanvas(Game#(player.x, player.y))) }
+      .do { Block#(p1.tick, p2.tick, gui.setCanvas(Game#(p1.x, p1.y, p2.x, p2.y)))}
       .done;
     }}}

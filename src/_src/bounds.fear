@@ -13,9 +13,16 @@ MenuBounds: { #(width: Width, height: Height): Bounds -> Block#
     }}}
 
 PlayerBounds: { #(x: Nat, y: Nat, width: Width, height: Height): Bounds -> Block#
-  .let w = { (width.get).div 10 } .let h = { (height.get*2).div 8 }
+  .let w = { (width.get).div 12 } .let h = { (height.get*2).div 10 }
   .return {{ 
     .x -> X#x; .y -> Y#y;
     .width -> Width#w; .height -> Height#h;
     }}}
+
+/* NetBounds: { #(x: Nat, y: Nat, width: Width, height: Height): Bounds -> Block# */
+/*   .let w = { (width.get).div 12 } .let h = { (height.get*2).div 10 } */
+/*   .return {{ */ 
+/*     .x -> X#x; .y -> Y#y; */
+/*     .width -> Width#w; .height -> Height#h; */
+/*     }}} */
 
