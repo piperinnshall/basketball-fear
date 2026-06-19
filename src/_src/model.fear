@@ -14,7 +14,7 @@ Balls: { #(startX: Nat, startY: Nat, width: Nat, height: Nat): mut Ball -> Block
     read .x: Nat -> bx.get.nat;
     read .y: Nat -> by.get.nat;
     read .alive: Bool -> alive.get;
-     mut .tick(player: mut Player): Void -> Block#
+     mut .tick(player: mut Player, square: mut Square): Void -> Block#
     .do { vy.set((vy.get + gravity).clamp(0.num - maxVel, maxVel)) }
     .do { bx.set(bx.get + (vx.get)) }
     .do { by.set(by.get + (vy.get)) }
@@ -26,11 +26,13 @@ Balls: { #(startX: Nat, startY: Nat, width: Nat, height: Nat): mut Ball -> Block
         .do { Block#(by.set(0.num), vy.set(vy.get.abs)) }
     .if { by.get + ballW > (height.num) }
         .do { Block#(by.set(height.num - ballW), vy.set(0.num - (vy.get.abs))) }
-    .if { ballBounds.overlapsPlayer(bx.get, by.get, player) }
+    .if { ballBounds.overlapsRect(bx.get, by.get, PlayerBounds#(player.x, player.y, Width#width, Height#height)) }
         .do { Block#(
           vx.set(ballBounds.bounceOffPlayer(bx.get, player)),
           vy.set(0.num - (vy.get.abs + (1.num)))
         )}
+    .if { ballBounds.overlapsRect(bx.get, by.get, SquareBounds#(square.x, square.y, Width#width, Height#height)) }
+        .do { alive.set False }
     .done;
     }}}
 
@@ -75,18 +77,20 @@ Squares: { #(startX: Nat, startY: Nat, width: Nat, height: Nat): mut Square -> B
   .let bounds           = { SquareBounds#(0, 0, Width#width, Height#height) }
   .let[imm Num] speed   = { 5.num }
   .let[imm Num] squareW = { bounds.width.get.num }
+  .let[imm Num] minX    = { width.num / (10.num) }
+  .let[imm Num] maxX    = { width.num * (9.num) / (10.num) - squareW }
 
   .return { mut Square: {
     read .x: Nat -> sx.get.nat;
     read .y: Nat -> startY;
     mut .tick: Void -> Block#
       .if { right.get }
-          .do { sx.set((sx.get + speed).clamp(0.num, width.num - squareW)) }
-      .if { sx.get >= (width.num - squareW) }
+          .do { sx.set((sx.get + speed).clamp(minX, maxX)) }
+      .if { sx.get >= maxX }
           .do { right.set False }
       .if { right.get.not }
-          .do { sx.set((sx.get - speed).clamp(0.num, width.num - squareW)) }
-      .if { sx.get <= (0.num) }
+          .do { sx.set((sx.get - speed).clamp(minX, maxX)) }
+      .if { sx.get <= minX }
           .do { right.set True }
       .done;
     }}}
@@ -118,11 +122,13 @@ Models: { #(gui: mut Gui, width: Nat, height: Nat): mut Model -> Block#
   .return { mut Model: {
     mut .player: mut Player -> player;
     mut .square: mut Square -> square;
-    mut .play(b: Bool): Void -> playing.set b;
+    mut .play: Void -> playing.set True;
     mut .tick: Void -> Block#
       .let state = { States#(player.x, player.y, ball.x, ball.y, square.x, square.y) }
       .if { playing.get } 
-          .do { Block#(player.tick, ball.tick player, square.tick, gui.set Game{ state }) }
+          .do { Block#(player.tick, ball.tick(player, square), square.tick, gui.set Game{ state }) }
+      .if { ball.alive.not }
+          .do { playing.set False }
       .done;
     }}}
 

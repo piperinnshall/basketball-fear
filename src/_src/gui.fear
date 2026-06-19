@@ -20,39 +20,43 @@ Guis: { #(model: mut Slot[mut Model], canvas: mut Slot[mut Pane], width: Nat,  h
       .paint Menu
       .mouse {::.clicked {e -> Block# 
         .if { MenuBounds#(e.panelWidth, e.panelHeight).inBounds(e.mouseX, e.mouseY) }
-          .do { model!.play True }
+          .do { model!.play }
         .done
         }}};
     mut .set(p: Painter): Void -> Block#(canvas!.paint(p), Void);
     }}}
 
 Menu: Painter {g -> Block#
+  .let lightGrey = { Color#(Red#(83.byte),Green#(81.byte),Blue#(81.byte),Alpha#(150.byte)) }
   .let menuBounds = { MenuBounds#(g.panelWidth, g.panelHeight) }
   .return {g
+  .color lightGrey
     .position(X#(0), Y#(0))
     .image(base.Cache.of(g.panelHeight.get.norm, CachedCourt))
     .position(menuBounds.x, menuBounds.y)
-    .rect(menuBounds.width, menuBounds.height)
+    .image(base.Cache.of(menuBounds.width.get.norm, CachedMenu))
     }}
 
-Game: Painter {g -> Block# /* .let lightGrey = { Color#(Red#(83.byte),Green#(81.byte),Blue#(81.byte),Alpha#(50.byte)) } */
+Game: Painter {g -> Block#
   .let squareBounds = { SquareBounds#(this.state.sx, this.state.sy, g.panelWidth, g.panelHeight) }
   .let playerBounds = { PlayerBounds#(this.state.px, this.state.py, g.panelWidth, g.panelHeight) }
   .let ballBounds   = { BallBounds#(this.state.bx, this.state.by, g.panelWidth, g.panelHeight) }
   .return {g
     .position(X#(0), Y#(0))
     .image(base.Cache.of(g.panelHeight.get.norm, CachedCourt))
+    .position(X#(squareBounds.x.get - (squareBounds.width.get.div 7)), squareBounds.y)
+    .image(base.Cache.of(((squareBounds.width.get * 9).div 7).norm, CachedHoop))
     .position(squareBounds.x, squareBounds.y)
-    .image(base.Cache.of(squareBounds.width.get.norm, CachedHoop)) /* .rect(squareBounds.width, squareBounds.height) // Hitbox */ 
     .position(playerBounds.x, playerBounds.y)
-    .image(base.Cache.of(playerBounds.width.get.norm, CachedPlayer)) /* .rect(playerBounds.width, playerBounds.height) // Hitbox */
+    .image(base.Cache.of(playerBounds.width.get.norm, CachedPlayer))
     .position(ballBounds.x, ballBounds.y)
     .image(base.Cache.of(ballBounds.width.get.norm, CachedBall))
     };
   .state: State;
   }
 
-CachedCourt: CacheF[Nat, Image] {h -> Courtimg.consumeImage("A", 3_000_000).scaleToHeight(Height#(h.get)) }
-CachedHoop: CacheF[Nat, Image] {w -> Hoopimg.consumeImage("A", 3_000_000).scaleToWidth(Width#(w.get)) }
-CachedBall: CacheF[Nat, Image] {w -> Ballimg.consumeImage("A", 3_000_000).scaleToWidth(Width#(w.get)) }
-CachedPlayer: CacheF[Nat, Image] {w -> Playerimg.consumeImage("A", 3_000_000).scaleToWidth(Width#(w.get)) }
+CachedCourt: CacheF[Nat, Image]   {h -> Courtimg.consumeImage("A", 3_000_000).scaleToHeight(Height#(h.get)) }
+CachedHoop: CacheF[Nat, Image]    {w -> Hoopimg.consumeImage("A", 3_000_000).scaleToWidth(Width#(w.get)) }
+CachedBall: CacheF[Nat, Image]    {w -> Ballimg.consumeImage("A", 3_000_000).scaleToWidth(Width#(w.get)) }
+CachedPlayer: CacheF[Nat, Image]  {w -> Playerimg.consumeImage("A", 3_000_000).scaleToWidth(Width#(w.get)) }
+CachedMenu: CacheF[Nat, Image]    {w -> Menuimg.consumeImage("A", 3_000_000).scaleToWidth(Width#(w.get)) }
