@@ -4,7 +4,12 @@ Bound: {
     x.get >= (this.x.get) 
     && { x.get <= (this.x.get + (this.width.get)) } 
     && { y.get >= (this.y.get) }
-    && { y.get <= (this.y.get + (this.height.get)) } 
+    && { y.get <= (this.y.get + (this.height.get)) };
+  .inBounds(b: Bound): Bool ->
+    this.x.get <= (b.x.get + (b.width.get))
+    && { (this.x.get + (this.width.get)) >= (b.x.get) }
+    && { this.y.get <= (b.y.get + (b.height.get)) }
+    && { (this.y.get + (this.height.get)) >= (b.y.get) }
   }
 
 MenuBounds: { #(width: Width, height: Height): Bound -> Block#
@@ -14,11 +19,18 @@ MenuBounds: { #(width: Width, height: Height): Bound -> Block#
     .width -> Width#w; .height -> Height#h;
     }}}
 
-PlayerBounds: { #(x: Nat, y: Nat, width: Width, height: Height): Bound -> Block#
-  .let w = { (width.get).div 12 } .let h = { (height.get*2).div 10 }
-  .return {{ 
+SquareBounds: { #(x: Nat, y: Nat, width: Width, height: Height): Bound -> Block#
+  .let w = { (width.get).div 8 } .let h = { width.get.div 10 }
+  .return {{
     .x -> X#x; .y -> Y#y;
     .width -> Width#w; .height -> Height#h;
+    }}}
+
+PlayerBounds: { #(x: Nat, y: Nat, width: Width, height: Height): Bound -> Block#
+  .let size = { (width.get).div 12 }
+  .return {{ 
+    .x -> X#x; .y -> Y#y;
+    .width -> Width#size; .height -> Height#size;
     }}}
 
 BallBounds: { #(x: Nat, y: Nat, width: Width, height: Height): BallBound -> Block#

@@ -67,6 +67,30 @@ Players: { #(startX: Nat, startY: Nat, width: Nat, height: Nat): mut Player -> B
       .done;
     }}}
 
+
+Squares: { #(startX: Nat, startY: Nat, width: Nat, height: Nat): mut Square -> Block#
+  .var[Num] sx          = { startX.num }
+  .var right            = { False }
+
+  .let bounds           = { SquareBounds#(0, 0, Width#width, Height#height) }
+  .let[imm Num] speed   = { 5.num }
+  .let[imm Num] squareW = { bounds.width.get.num }
+
+  .return { mut Square: {
+    read .x: Nat -> sx.get.nat;
+    read .y: Nat -> startY;
+    mut .tick: Void -> Block#
+      .if { right.get }
+          .do { sx.set((sx.get + speed).clamp(0.num, width.num - squareW)) }
+      .if { sx.get >= (width.num - squareW) }
+          .do { right.set False }
+      .if { right.get.not }
+          .do { sx.set((sx.get - speed).clamp(0.num, width.num - squareW)) }
+      .if { sx.get <= (0.num) }
+          .do { right.set True }
+      .done;
+    }}}
+
 Models: { #(gui: mut Gui, width: Nat, height: Nat): mut Model -> Block#
   .var playing      = { False }
 
@@ -76,6 +100,7 @@ Models: { #(gui: mut Gui, width: Nat, height: Nat): mut Model -> Block#
   .let playerX      = { (width.div 2) - (playerW.div 2) }
   .let playerY      = { height - playerH } 
   .let player       = { Players#(playerX, playerY, width, height) }
+
   .let ballBounds   = { BallBounds#(0, 0, Width#width, Height#height) }
   .let ballW        = { playerBounds.width.get }
   .let ballH        = { playerBounds.height.get }
@@ -83,21 +108,31 @@ Models: { #(gui: mut Gui, width: Nat, height: Nat): mut Model -> Block#
   .let ballY        = { (height.div 4) - (ballH.div 2) } 
   .let ball         = { Balls#(ballX, ballY, width, height) }
 
+  .let squareBounds = { SquareBounds#(0, 0, Width#width, Height#height) }
+  .let squareW      = { squareBounds.width.get }
+  .let squareH      = { squareBounds.height.get }
+  .let squareX      = { (width.div 4) - (squareW.div 2) }
+  .let squareY      = { (height.div 4) - ((squareH * 3) .div 4) }
+  .let square       = { Squares#(squareX, squareY, width, height) }
+
   .return { mut Model: {
     mut .player: mut Player -> player;
-    mut .play: Void -> playing.set True;
+    mut .square: mut Square -> square;
+    mut .play(b: Bool): Void -> playing.set b;
     mut .tick: Void -> Block#
-      .let state = { States#(player.x, player.y,ball.x, ball.y ) }
+      .let state = { States#(player.x, player.y, ball.x, ball.y, square.x, square.y) }
       .if { playing.get } 
-          .do { Block#(player.tick, ball.tick player, gui.set Game{ state }) }
+          .do { Block#(player.tick, ball.tick player, square.tick, gui.set Game{ state }) }
       .done;
     }}}
 
-States: { #(px: Nat, py: Nat, bx: Nat, by: Nat): State -> 
+States: { #(px: Nat, py: Nat, bx: Nat, by: Nat, sx: Nat, sy: Nat): State -> 
   State: {
     .px: Nat -> px;
     .py: Nat -> py;
     .bx: Nat -> bx;
     .by: Nat -> by;
+    .sx: Nat -> sx;
+    .sy: Nat -> sy;
     }}
 

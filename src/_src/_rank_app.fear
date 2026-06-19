@@ -23,6 +23,8 @@ use base.Frame as Frame;
 use base.Debug as Debug;
 use base.Color as Color;
 use base.WidenTo as WidenTo;
+use base.CacheF as CacheF;
+use base.Image as Image;
 use base.List as List;
 use base.Lists as Lists;
 use base.WidthNat as Width;
@@ -39,8 +41,8 @@ use base.Scope as Scope;
 use base.Painter as Painter;
 
 Presentation2: base.Main {sys -> Block#
-  .let height = { 900 }
-  .let width = { (height * 4).div 3 }
+  .let height = { 700 }
+  .let width = { (height * 5).div 2 }
   .let model = { Slots#[mut Model] }
   .let canvas = { Slots#[Pane] }
   .let gui = { Guis#(model, canvas, width, height) }
