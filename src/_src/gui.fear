@@ -4,51 +4,42 @@ Guis: { #(model: mut Slot[mut Model], canvas: mut Slot[mut Pane], width: Nat,  h
   .return { mut Gui: Consumer[mut Frame] {::
     .title "Volleyball"
     .undecorated alpha
-    .fps 60
+    .fps 120
     .onKey {::
-        .pressed {::.matchOnly(Key#`A`) .doOnly { e -> model!.player1.left True } }
-        .released {::.matchOnly(Key#`A`) .doOnly { e -> model!.player1.left False } }
-        .pressed {::.matchOnly(Key#`D`) .doOnly { e -> model!.player1.right True } }
-        .released {::.matchOnly(Key#`D`) .doOnly { e -> model!.player1.right False } }
-        .pressed {::.matchOnly(Key#`J`) .doOnly { e -> model!.player2.left True } }
-        .released {::.matchOnly(Key#`J`) .doOnly { e -> model!.player2.left False } }
-        .pressed {::.matchOnly(Key#`L`) .doOnly { e -> model!.player2.right True } }
-        .released {::.matchOnly(Key#`L`) .doOnly { e -> model!.player2.right False } }
-        .pressed {::.matchOnly(Key#`W`) .doOnly { e -> model!.player1.jump } }
-        .pressed {::.matchOnly(Key#`I`) .doOnly { e -> model!.player2.jump } }
+        .pressed  {::.matchOnly(Key#`W`) .doOnly { e -> model!.player.jump } }
+        .pressed  {::.matchOnly(Key#`A`) .doOnly { e -> model!.player.left True } }
+        .released {::.matchOnly(Key#`A`) .doOnly { e -> model!.player.left False } }
+        .pressed  {::.matchOnly(Key#`D`) .doOnly { e -> model!.player.right True } }
+        .released {::.matchOnly(Key#`D`) .doOnly { e -> model!.player.right False } }
       }
-    .modelFps(60, {:: .action { model!.tick } })
+    .modelFps(100, {:: .action { model!.tick } })
     .content {::
       .width width
       .height height
-      .background lightGrey
+      .background (Color.deepNapBlue)
       .save canvas 
       .paint Menu
       .mouse {::.clicked {e -> Block# 
         .if { MenuBounds#(e.panelWidth, e.panelHeight).inBounds(e.mouseX, e.mouseY) }
-        .do { model!.play }
+          .do { model!.play }
         .done
         }}};
     mut .set(p: Painter): Void -> Block#(canvas!.paint(p), Void);
     }}}
 
 Menu: Painter {g -> Block#
-  .let bounds = { MenuBounds#(g.panelWidth, g.panelHeight) }
+  .let menuBounds = { MenuBounds#(g.panelWidth, g.panelHeight) }
   .return {g
-    .position(bounds.x, bounds.y)
-    .rect(bounds.width, bounds.height)
+    .position(menuBounds.x, menuBounds.y)
+    .rect(menuBounds.width, menuBounds.height)
     }}
 
 Game: Painter {g -> Block#
-  .let s = { this.state }
-  .let player1Bounds = { PlayerBounds#(s.x1, s.y1, g.panelWidth, g.panelHeight) }
-  .let player2Bounds = { PlayerBounds#(s.x2, s.y2, g.panelWidth, g.panelHeight) }
-  .let ballBounds = { BallBounds#(s.bx, s.by, g.panelWidth, g.panelHeight) }
+  .let playerBounds = { PlayerBounds#(this.state.px, this.state.py, g.panelWidth, g.panelHeight) }
+  .let ballBounds   = { BallBounds#(this.state.bx, this.state.by, g.panelWidth, g.panelHeight) }
   .return {g
-    .position(player1Bounds.x, player1Bounds.y)
-    .rect(player1Bounds.width, player1Bounds.height)
-    .position(player2Bounds.x, player2Bounds.y)
-    .rect(player2Bounds.width, player2Bounds.height)
+    .position(playerBounds.x, playerBounds.y)
+    .rect(playerBounds.width, playerBounds.height)
     .position(ballBounds.x, ballBounds.y)
     .oval(ballBounds.width, ballBounds.height)
     };

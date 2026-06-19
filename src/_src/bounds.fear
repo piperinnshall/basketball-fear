@@ -1,28 +1,62 @@
-Bounds: {
+Bound: {
   .x: X; .y: Y; .width: Width; .height: Height;
   .inBounds(x: X, y: Y): Bool ->
-    x.get >= (this.x.get) && { x.get <= (this.x.get + (this.width.get)) } &&
-    { y.get >= (this.y.get) && { y.get <= (this.y.get + (this.height.get)) } }
+    x.get >= (this.x.get) 
+    && { x.get <= (this.x.get + (this.width.get)) } 
+    && { y.get >= (this.y.get) }
+    && { y.get <= (this.y.get + (this.height.get)) } 
   }
 
-MenuBounds: { #(width: Width, height: Height): Bounds -> Block#
+MenuBounds: { #(width: Width, height: Height): Bound -> Block#
   .let w = { (width.get * 2).div 5 } .let h = { height.get.div 5 }
   .return {{ 
     .x -> X#((width.get - w).div 2); .y -> Y#((height.get - h).div 2); 
     .width -> Width#w; .height -> Height#h;
     }}}
 
-PlayerBounds: { #(x: Nat, y: Nat, width: Width, height: Height): Bounds -> Block#
+PlayerBounds: { #(x: Nat, y: Nat, width: Width, height: Height): Bound -> Block#
   .let w = { (width.get).div 12 } .let h = { (height.get*2).div 10 }
   .return {{ 
     .x -> X#x; .y -> Y#y;
     .width -> Width#w; .height -> Height#h;
     }}}
 
-BallBounds: { #(x: Nat, y: Nat, width: Width, height: Height): Bounds -> Block#
+BallBounds: { #(x: Nat, y: Nat, width: Width, height: Height): BallBound -> Block#
   .let size = { (width.get).div 16 }
   .return {{
     .x -> X#x; .y -> Y#y;
     .width -> Width#size; .height -> Height#size;
+    .screenWidth -> width;
+    .screenHeight -> height;
     }}}
 
+BallBound: Bound {
+    .screenWidth: Width;
+    .screenHeight: Height;
+    .overlapsPlayer(bx: Num, by: Num, player: read Player): Bool -> Block#
+      .let playerBounds         = { PlayerBounds#(player.x, player.y, this.screenWidth, this.screenHeight) }
+      .let[imm Num] px          = { playerBounds.x.get.num }
+      .let[imm Num] py          = { playerBounds.y.get.num }
+      .let[imm Num] playerW     = { playerBounds.width.get.num }
+      .let[imm Num] playerH     = { playerBounds.height.get.num }
+      .let[imm Num] ballW       = { this.width.get.num }
+      .let[imm Num] ballH       = { this.height.get.num }
+      .let[imm Num] ballRight   = { bx + ballW }
+      .let[imm Num] ballBottom  = { by + ballH }
+      .let[imm Num] playerRight = { px + playerW }
+      .let[imm Num] playerBottom = { py + playerH }
+      .return {
+        ballRight > px
+        && { bx < playerRight }
+        && { ballBottom > py }
+        && { by < playerBottom }
+        };
+    .bounceOffPlayer(bx: Num, player: read Player): Num -> Block#
+      .let playerBounds           = { PlayerBounds#(player.x, player.y, this.screenWidth, this.screenHeight) }
+      .let[imm Num] px            = { playerBounds.x.get.num }
+      .let[imm Num] playerW       = { playerBounds.width.get.num }
+      .let[imm Num] playerCenter  = { px + (playerW / (2.num)) }
+      .let[imm Num] ballCenter    = { bx + (this.width.get.num / (2.num)) }
+      .return {
+        (ballCenter - playerCenter) / (playerW / (2.num)) * (8.num)
+        }}

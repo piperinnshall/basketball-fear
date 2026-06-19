@@ -1,117 +1,103 @@
-Players: { #(startX: Nat, startY: Nat, width: Nat, height: Nat, min: Nat, max: Nat): mut Player -> Block#
-  .var[Num] px = { startX.num }
-  .var[Num] py = { startY.num }
-  .var[Num] vy = { 0.num }
-  .var left = { False }
-  .var right = { False }
-  .let speed = { 8.num }
-  .let gravity = { 2 / 5 }
-  .let jumpStrength = { 0.num - (12.num) }
-  .let groundY = { startY.num }
-  .let boundsWidth = { PlayerBounds#(0, 0, Width#width, Height#height).width.get.num }
+Balls: { #(startX: Nat, startY: Nat, width: Nat, height: Nat): mut Ball -> Block#
+  .var[Num] bx          = { startX.num }
+  .var[Num] by          = { startY.num }
+  .var[Num] vx          = { 0.num }
+  .var[Num] vy          = { 0.num }
+  .var alive            = { True }
+
+  .let ballBounds       = { BallBounds#(0, 0, Width#width, Height#height) }
+  .let[imm Num] gravity = { 2 / 5 }
+  .let[imm Num] maxVel  = { 12.num }
+  .let[imm Num] ballW   = { ballBounds.width.get.num }
+
+  .return { mut Ball: {
+    read .x: Nat -> bx.get.nat;
+    read .y: Nat -> by.get.nat;
+    read .alive: Bool -> alive.get;
+     mut .tick(player: mut Player): Void -> Block#
+    .do { vy.set((vy.get + gravity).clamp(0.num - maxVel, maxVel)) }
+    .do { bx.set(bx.get + (vx.get)) }
+    .do { by.set(by.get + (vy.get)) }
+    .if { bx.get < (0.num) }
+        .do { Block#(bx.set(0.num), vx.set(vx.get.abs)) }
+    .if { bx.get + ballW > (width.num) }
+        .do { Block#(bx.set(width.num - ballW), vx.set(0.num - (vx.get.abs))) }
+    .if { by.get < (0.num) }
+        .do { Block#(by.set(0.num), vy.set(vy.get.abs)) }
+    .if { by.get + ballW > (height.num) }
+        .do { Block#(by.set(height.num - ballW), vy.set(0.num - (vy.get.abs))) }
+    .if { ballBounds.overlapsPlayer(bx.get, by.get, player) }
+        .do { Block#(
+          vx.set(ballBounds.bounceOffPlayer(bx.get, player)),
+          vy.set(0.num - (vy.get.abs + (1.num)))
+        )}
+    .done;
+    }}}
+
+Players: { #(startX: Nat, startY: Nat, width: Nat, height: Nat): mut Player -> Block#
+  .var[Num] px                = { startX.num }
+  .var[Num] py                = { startY.num }
+  .var[Num] vy                = { 0.num }
+  .var left                   = { False }
+  .var right                  = { False }
+
+  .let playerBounds           = { PlayerBounds#(0, 0, Width#width, Height#height) }
+  .let[imm Num] speed         = { 8.num }
+  .let[imm Num] gravity       = { 2 / 5 }
+  .let[imm Num] jumpStrength  = { 0.num - (12.num) }
+  .let[imm Num] groundY       = { startY.num }
+  .let[imm Num] playerW       = { playerBounds.width.get.num }
+
   .return { mut Player: {
     read .x: Nat -> px.get.nat;
     read .y: Nat -> py.get.nat;
     mut .left(b: Bool): Void -> left.set b;
     mut .right(b: Bool): Void -> right.set b;
-    mut .jump: Void -> Block#
-      .let curY = { py.get }
-      .if { curY >= groundY }
-      .do { vy.set jumpStrength }
-      .done;
+    mut .jump: Void -> Block#.if { py.get >= groundY }.do { vy.set jumpStrength }.done;
     mut .tick: Void -> Block#
-      .let curX = { px.get }
-      .let curY = { py.get }
       .let curVy = { vy.get + gravity }
-      .let newY = { curY + curVy }
       .do { vy.set curVy }
       .if { left.get }
-      .do { px.set((curX - speed).clamp(min.num, max.num - boundsWidth)) }
+          .do { px.set((px.get - speed).clamp(0.num, width.num - playerW)) }
       .if { right.get }
-      .do { px.set((curX + speed).clamp(min.num, max.num - boundsWidth)) }
-      .do { py.set newY }
-      .if { newY > groundY }
-      .do { Block#(py.set groundY, vy.set(0.num)) }
+          .do { px.set((px.get + speed).clamp(0.num, width.num - playerW)) }
+      .do { py.set(py.get + curVy) }
+      .if { (py.get + curVy) > groundY }
+          .do { Block#(py.set groundY, vy.set(0.num)) }
       .done;
     }}}
-
-Balls: { #(startX: Nat, startY: Nat, width: Nat, height: Nat): mut Ball -> Block#
-  .var[Num] ballX = { startX.num }
-  .var[Num] ballY = { startY.num }
-  .var[Num] velocityX = { 3.num }
-  .var[Num] velocityY = { 0.num }
-  .let gravity = { 2 / 5 }
-  .let bounce = { 3 / 4 }
-  .let ballSize = { BallBounds#(0, 0, Width#width, Height#height).width.get.num }
-  .return { mut Ball: { 'self
-    mut .x: Nat -> ballX.get.nat;
-    mut .y: Nat -> ballY.get.nat;
-    mut .tick(p1: mut Player, p2: mut Player): Void -> Block#
-      .let bx = { ballX.get }
-      .let by = { ballY.get }
-      .let vx = { velocityX.get }
-      .let vy = { velocityY.get + gravity }
-      .do { velocityY.set vy }
-      .do { ballX.set(bx + vx) }
-      .do { ballY.set(by + vy) }
-      .if { bx < (0.num) }
-      .do { Block#(ballX.set(0.num), velocityX.set(vx.abs)) }
-      .if { (bx + ballSize) > (width.num) }
-      .do { Block#(ballX.set(width.num - ballSize), velocityX.set(0.num - (vx.abs))) }
-      .if { by < (0.num) }
-      .do { Block#(ballY.set(0.num), velocityY.set(vy.abs)) }
-      .if { (by + ballSize) > (height.num) }
-      .do { Block#(ballY.set(height.num - ballSize), velocityY.set(0.num - (vy.abs * bounce))) }
-      .if { Block#
-        .let pb1 = { PlayerBounds#(p1.x, p1.y, Width#width, Height#height) }
-        .let pb2 = { PlayerBounds#(p2.x, p2.y, Width#width, Height#height) }
-        .return {
-          (bx + ballSize > (pb1.x.get.num)
-          && { bx < (pb1.x.get.num + (pb1.width.get.num)) }
-          && { by + ballSize > (pb1.y.get.num) }
-          && { by < (pb1.y.get.num + (pb1.height.get.num)) })
-          ||
-          { bx + ballSize > (pb2.x.get.num)
-          && { bx < (pb2.x.get.num + (pb2.width.get.num)) }
-          && { by + ballSize > (pb2.y.get.num) }
-          && { by < (pb2.y.get.num + (pb2.height.get.num)) } }
-        }}
-      .do { velocityY.set(0.num - (vy.abs * bounce)) }
-      .done;
-    }}}
-
-States: { #(x1: Nat, y1: Nat, x2: Nat, y2: Nat, bx: Nat, by: Nat): State -> 
-  State: {
-    .x1: Nat -> x1;
-    .y1: Nat -> y1;
-    .x2: Nat -> x2;
-    .y2: Nat -> y2;
-    .bx: Nat -> bx;
-    .by: Nat -> by;
-  }}
 
 Models: { #(gui: mut Gui, width: Nat, height: Nat): mut Model -> Block#
-  .var playing = { False }
+  .var playing      = { False }
 
   .let playerBounds = { PlayerBounds#(0, 0, Width#width, Height#height) }
-  .let ballBounds = { BallBounds#(0, 0, Width#width, Height#height) }
-  .let playerBoundsW = { playerBounds.width.get }
-
-  .let mid = { width.div 2 }
-  .let startX = { width.div 8 }
-  .let startY = { (height * 7) .div 10 } 
-
-  .let p1 = { Players#(startX, startY, width, height, 0, mid) }
-  .let p2 = { Players#(width - startX - playerBoundsW, startY, width, height, mid, width) }
-  .let ball = { Balls#(startX, startY - (height.div 5), width, height) }
+  .let playerW      = { playerBounds.width.get }
+  .let playerH      = { playerBounds.height.get }
+  .let playerX      = { (width.div 2) - (playerW.div 2) }
+  .let playerY      = { height - playerH } 
+  .let player       = { Players#(playerX, playerY, width, height) }
+  .let ballBounds   = { BallBounds#(0, 0, Width#width, Height#height) }
+  .let ballW        = { playerBounds.width.get }
+  .let ballH        = { playerBounds.height.get }
+  .let ballX        = { (width.div 2) - (ballW.div 2) }
+  .let ballY        = { (height.div 4) - (ballH.div 2) } 
+  .let ball         = { Balls#(ballX, ballY, width, height) }
 
   .return { mut Model: {
-    mut .player1: mut Player -> p1;
-    mut .player2: mut Player -> p2;
+    mut .player: mut Player -> player;
     mut .play: Void -> playing.set True;
     mut .tick: Void -> Block#
-      .let state = { States#(p1.x, p1.y, p2.x, p2.y, ball.x, ball.y) }
+      .let state = { States#(player.x, player.y,ball.x, ball.y ) }
       .if { playing.get } 
-      .do { Block#(p1.tick, p2.tick, ball.tick(p1, p2), gui.set Game{ state })}
+          .do { Block#(player.tick, ball.tick player, gui.set Game{ state }) }
       .done;
     }}}
+
+States: { #(px: Nat, py: Nat, bx: Nat, by: Nat): State -> 
+  State: {
+    .px: Nat -> px;
+    .py: Nat -> py;
+    .bx: Nat -> bx;
+    .by: Nat -> by;
+    }}
+
