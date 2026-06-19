@@ -2,7 +2,7 @@ Guis: { #(model: mut Slot[mut Model], canvas: mut Slot[mut Pane], width: Nat,  h
   .let lightGrey = { Color#(Red#(83.byte),Green#(81.byte),Blue#(81.byte),Alpha.opaque) }
   .let alpha = { Alpha.opaque }
   .return { mut Gui: Consumer[mut Frame] {::
-    .title "Volleyball"
+    .title "Basketball"
     .undecorated alpha
     .fps 120
     .onKey {::
@@ -35,13 +35,11 @@ Menu: Painter {g -> Block#
     .rect(menuBounds.width, menuBounds.height)
     }}
 
-Game: Painter {g -> Block#
-  .let lightGrey = { Color#(Red#(83.byte),Green#(81.byte),Blue#(81.byte),Alpha#(50.byte)) }
+Game: Painter {g -> Block# /* .let lightGrey = { Color#(Red#(83.byte),Green#(81.byte),Blue#(81.byte),Alpha#(50.byte)) } */
   .let squareBounds = { SquareBounds#(this.state.sx, this.state.sy, g.panelWidth, g.panelHeight) }
   .let playerBounds = { PlayerBounds#(this.state.px, this.state.py, g.panelWidth, g.panelHeight) }
   .let ballBounds   = { BallBounds#(this.state.bx, this.state.by, g.panelWidth, g.panelHeight) }
   .return {g
-    .color lightGrey
     .position(X#(0), Y#(0))
     .image(base.Cache.of(g.panelHeight.get.norm, CachedCourt))
     .position(squareBounds.x, squareBounds.y)
