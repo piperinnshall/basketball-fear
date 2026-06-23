@@ -40,12 +40,12 @@ use base.Border as Border;
 use base.Scope as Scope;
 use base.Painter as Painter;
 
-Presentation2: base.Main {sys -> Block#
-  .let height = { 700 }
-  .let width = { (height * 5).div 2 }
-  .let model = { Slots#[mut Model] }
+Presentation2: base.Main { sys -> Block#
+  .let height = { 500 }
+  .let width  = { (height * 5).div 2 }
+  .let model  = { Slots#[mut Model] }
   .let canvas = { Slots#[Pane] }
-  .let gui = { Guis#(model, canvas, width, height) }
+  .let gui    = { Guis#(model, canvas, width, height) }
   .do { model.fill(Models#(gui, width, height)) }
   .do { sys.gui.run gui }
   .done

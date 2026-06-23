@@ -50,7 +50,7 @@ BallBound: Bound {
       .let[imm Num] ballRight   = { bx + ballW }
       .let[imm Num] ballBottom  = { by + ballH }
       .let[imm Num] boundRight  = { px + boundW }
-      .let[imm Num] boundBottom  = { py + boundH }
+      .let[imm Num] boundBottom = { py + boundH }
       .return {
         ballRight > px
         && { bx < boundRight }
@@ -58,11 +58,11 @@ BallBound: Bound {
         && { by < boundBottom }
         };
     .bounceOffPlayer(bx: Num, player: read Player): Num -> Block#
-      .let playerBounds           = { PlayerBounds#(player.x, player.y, this.screenWidth, this.screenHeight) }
-      .let[imm Num] px            = { playerBounds.x.get.num }
-      .let[imm Num] playerW       = { playerBounds.width.get.num }
-      .let[imm Num] playerCenter  = { px + (playerW / (2.num)) }
-      .let[imm Num] ballCenter    = { bx + (this.width.get.num / (2.num)) }
+      .let playerBounds          = { PlayerBounds#(player.x, player.y, this.screenWidth, this.screenHeight) }
+      .let[imm Num] px           = { playerBounds.x.get.num }
+      .let[imm Num] playerW      = { playerBounds.width.get.num }
+      .let[imm Num] playerCenter = { px + (playerW / (2.num)) }
+      .let[imm Num] ballCenter   = { bx + (this.width.get.num / (2.num)) }
       .return {
         (ballCenter - playerCenter) / (playerW / (2.num)) * (8.num)
         }}

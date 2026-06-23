@@ -1,16 +1,15 @@
 Guis: { #(model: mut Slot[mut Model], canvas: mut Slot[mut Pane], width: Nat,  height: Nat): mut Gui -> Block#
   .let lightGrey = { Color#(Red#(83.byte),Green#(81.byte),Blue#(81.byte),Alpha.opaque) }
-  .let alpha = { Alpha.opaque }
   .return { mut Gui: Consumer[mut Frame] {::
     .title "Basketball"
-    .undecorated alpha
+    .undecorated(Alpha.opaque)
     .fps 120
     .onKey {::
-        .pressed  {::.matchOnly(Key#`W`) .doOnly { e -> model!.player.jump } }
-        .pressed  {::.matchOnly(Key#`A`) .doOnly { e -> model!.player.left True } }
-        .released {::.matchOnly(Key#`A`) .doOnly { e -> model!.player.left False } }
-        .pressed  {::.matchOnly(Key#`D`) .doOnly { e -> model!.player.right True } }
-        .released {::.matchOnly(Key#`D`) .doOnly { e -> model!.player.right False } }
+        .pressed  {:: .matchOnly(Key#`W`) .doOnly { e -> model!.player.jump } }
+        .pressed  {:: .matchOnly(Key#`A`) .doOnly { e -> model!.player.left True } }
+        .released {:: .matchOnly(Key#`A`) .doOnly { e -> model!.player.left False } }
+        .pressed  {:: .matchOnly(Key#`D`) .doOnly { e -> model!.player.right True } }
+        .released {:: .matchOnly(Key#`D`) .doOnly { e -> model!.player.right False } }
       }
     .modelFps(100, {:: .action { model!.tick } })
     .content {::
@@ -18,7 +17,7 @@ Guis: { #(model: mut Slot[mut Model], canvas: mut Slot[mut Pane], width: Nat,  h
       .height height
       .save canvas 
       .paint Menu
-      .mouse {::.clicked {e -> Block# 
+      .mouse {:: .clicked { e -> Block# 
         .if { MenuBounds#(e.panelWidth, e.panelHeight).inBounds(e.mouseX, e.mouseY) }
           .do { model!.play }
         .done
@@ -26,7 +25,7 @@ Guis: { #(model: mut Slot[mut Model], canvas: mut Slot[mut Pane], width: Nat,  h
     mut .set(p: Painter): Void -> Block#(canvas!.paint(p), Void);
     }}}
 
-Menu: Painter {g -> Block#
+Menu: Painter { g -> Block#
   .let lightGrey = { Color#(Red#(83.byte),Green#(81.byte),Blue#(81.byte),Alpha#(150.byte)) }
   .let menuBounds = { MenuBounds#(g.panelWidth, g.panelHeight) }
   .return {g
@@ -37,14 +36,14 @@ Menu: Painter {g -> Block#
     .image(base.Cache.of(menuBounds.width.get.norm, CachedMenu))
     }}
 
-Game: Painter {g -> Block#
+Game: Painter { g -> Block#
   .let squareBounds = { SquareBounds#(this.state.sx, this.state.sy, g.panelWidth, g.panelHeight) }
   .let playerBounds = { PlayerBounds#(this.state.px, this.state.py, g.panelWidth, g.panelHeight) }
   .let ballBounds   = { BallBounds#(this.state.bx, this.state.by, g.panelWidth, g.panelHeight) }
   .return {g
     .position(X#(0), Y#(0))
     .image(base.Cache.of(g.panelHeight.get.norm, CachedCourt))
-    .position(X#(squareBounds.x.get - (squareBounds.width.get.div 7)), squareBounds.y)
+    .position(X#(squareBounds.x.get - (squareBounds.width.get.div 7)), squareBounds.y) 
     .image(base.Cache.of(((squareBounds.width.get * 9).div 7).norm, CachedHoop))
     .position(squareBounds.x, squareBounds.y)
     .position(playerBounds.x, playerBounds.y)
@@ -55,8 +54,8 @@ Game: Painter {g -> Block#
   .state: State;
   }
 
-CachedCourt: CacheF[Nat, Image]   {h -> Courtimg.consumeImage("A", 3_000_000).scaleToHeight(Height#(h.get)) }
-CachedHoop: CacheF[Nat, Image]    {w -> Hoopimg.consumeImage("A", 3_000_000).scaleToWidth(Width#(w.get)) }
-CachedBall: CacheF[Nat, Image]    {w -> Ballimg.consumeImage("A", 3_000_000).scaleToWidth(Width#(w.get)) }
-CachedPlayer: CacheF[Nat, Image]  {w -> Playerimg.consumeImage("A", 3_000_000).scaleToWidth(Width#(w.get)) }
-CachedMenu: CacheF[Nat, Image]    {w -> Menuimg.consumeImage("A", 3_000_000).scaleToWidth(Width#(w.get)) }
+CachedCourt: CacheF[Nat, Image]  { h -> ImgCourt  .consumeImage("A", 3_000_000) .scaleToHeight(Height#(h.get)) }
+CachedHoop: CacheF[Nat, Image]   { w -> ImgHoop   .consumeImage("A", 3_000_000) .scaleToWidth(Width#(w.get)) }
+CachedBall: CacheF[Nat, Image]   { w -> ImgBall   .consumeImage("A", 3_000_000) .scaleToWidth(Width#(w.get)) }
+CachedPlayer: CacheF[Nat, Image] { w -> ImgPlayer .consumeImage("A", 3_000_000) .scaleToWidth(Width#(w.get)) }
+CachedMenu: CacheF[Nat, Image]   { w -> ImgMenu   .consumeImage("A", 3_000_000) .scaleToWidth(Width#(w.get)) }

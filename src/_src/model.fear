@@ -4,12 +4,10 @@ Balls: { #(startX: Nat, startY: Nat, width: Nat, height: Nat): mut Ball -> Block
   .var[Num] vx          = { 0.num }
   .var[Num] vy          = { 0.num }
   .var alive            = { True }
-
   .let ballBounds       = { BallBounds#(0, 0, Width#width, Height#height) }
   .let[imm Num] gravity = { 2 / 5 }
   .let[imm Num] maxVel  = { 12.num }
   .let[imm Num] ballW   = { ballBounds.width.get.num }
-
   .return { mut Ball: {
     read .x: Nat -> bx.get.nat;
     read .y: Nat -> by.get.nat;
@@ -42,14 +40,12 @@ Players: { #(startX: Nat, startY: Nat, width: Nat, height: Nat): mut Player -> B
   .var[Num] vy                = { 0.num }
   .var left                   = { False }
   .var right                  = { False }
-
   .let playerBounds           = { PlayerBounds#(0, 0, Width#width, Height#height) }
   .let[imm Num] speed         = { 8.num }
   .let[imm Num] gravity       = { 2 / 5 }
   .let[imm Num] jumpStrength  = { 0.num - (12.num) }
   .let[imm Num] groundY       = { startY.num }
   .let[imm Num] playerW       = { playerBounds.width.get.num }
-
   .return { mut Player: {
     read .x: Nat -> px.get.nat;
     read .y: Nat -> py.get.nat;
@@ -69,17 +65,14 @@ Players: { #(startX: Nat, startY: Nat, width: Nat, height: Nat): mut Player -> B
       .done;
     }}}
 
-
 Squares: { #(startX: Nat, startY: Nat, width: Nat, height: Nat): mut Square -> Block#
   .var[Num] sx          = { startX.num }
   .var right            = { False }
-
   .let bounds           = { SquareBounds#(0, 0, Width#width, Height#height) }
   .let[imm Num] speed   = { 5.num }
   .let[imm Num] squareW = { bounds.width.get.num }
   .let[imm Num] minX    = { width.num / (10.num) }
   .let[imm Num] maxX    = { width.num * (9.num) / (10.num) - squareW }
-
   .return { mut Square: {
     read .x: Nat -> sx.get.nat;
     read .y: Nat -> startY;
